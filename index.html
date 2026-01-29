@@ -1560,8 +1560,13 @@
 
         toc.appendChild(tocList);
         const main = document.querySelector("main");
-        if (main && main.parentNode) {
-            main.parentNode.insertBefore(toc, main);
+        if (main) {
+            const title = main.querySelector("h1");
+            if (title) {
+                main.insertBefore(toc, title);
+            } else {
+                main.prepend(toc);
+            }
         } else {
             document.body.appendChild(toc);
         }
