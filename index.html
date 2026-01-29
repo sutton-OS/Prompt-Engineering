@@ -424,9 +424,25 @@
             main { padding-bottom: 90px; }
             h1 { font-size: 32px; margin: 20px 0 40px; }
             h2 { font-size: 20px; margin-top: 40px; }
-            .theme-toggle { justify-content: center; }
+            .theme-toggle { justify-content: flex-end; }
             .tech-content { top: 10vh; padding: 7vh 0 16vh; }
             .copy-template { width: 26px; height: 26px; border-radius: 6px; }
+            .toc{
+              position: static;
+              top: auto;
+              left: auto;
+              width: 100%;
+              max-width: none;
+              margin: 8px 0 20px;
+              padding: 10px 8px;
+              transform: none;
+              opacity: 1;
+            }
+
+            .toc:not(:hover):not(:focus-within){
+              animation: none;
+              opacity: 1;
+            }
         }
 
         /* === TOC: subtle rectangular control (no border) === */
@@ -1543,7 +1559,12 @@
         });
 
         toc.appendChild(tocList);
-        document.body.appendChild(toc);
+        const main = document.querySelector("main");
+        if (main && main.parentNode) {
+            main.parentNode.insertBefore(toc, main);
+        } else {
+            document.body.appendChild(toc);
+        }
 
         let tocIsHovered = false;
 
