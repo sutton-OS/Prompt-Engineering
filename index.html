@@ -419,14 +419,33 @@
 
         /* Responsive */
         @media (max-width: 768px) {
-            :root { --chapter-vh: 120vh; }
+            :root { --chapter-vh: auto; }
             .container { padding: 24px 18px 0; }
-            main { padding-bottom: 90px; }
-            h1 { font-size: 32px; margin: 20px 0 40px; }
-            h2 { font-size: 20px; margin-top: 40px; }
+            main { padding-bottom: 80px; }
+            h1 { font-size: 32px; margin: 16px 0 32px; }
+            h2 { font-size: 20px; margin-top: 36px; }
             .theme-toggle { justify-content: flex-end; }
-            .tech-content { top: 10vh; padding: 7vh 0 16vh; }
+            .tech { min-height: auto; margin-bottom: 28px; }
+            .tech-content {
+              position: static;
+              top: auto;
+              padding: 0;
+              max-width: none;
+            }
+            body.scrolly-on .tech,
+            body.scrolly-on .tech.is-prev,
+            body.scrolly-on .tech.is-next,
+            body.scrolly-on .tech.is-active{
+              opacity: 1;
+              transform: none;
+              transition: none;
+            }
             .copy-template { width: 26px; height: 26px; border-radius: 6px; }
+            .prompt-block{
+              padding: 16px 18px;
+              font-size: 15.5px;
+              margin: 16px 0;
+            }
             .toc{
               position: static;
               top: auto;
@@ -442,6 +461,11 @@
             .toc:not(:hover):not(:focus-within){
               animation: none;
               opacity: 1;
+            }
+
+            .toc-list{
+              max-height: 180px;
+              padding: 10px 0;
             }
         }
 
