@@ -610,6 +610,68 @@
           outline: none;
         }
 
+        /* === TOC: mobile toggle tab + genie collapse === */
+        .toc-tab{
+          position: fixed;
+          top: 10px;
+          left: 10px;
+          z-index: 60;
+          display: none;
+          align-items: center;
+          justify-content: center;
+          height: 24px;
+          padding: 0 8px;
+          border-radius: 12px;
+          border: 1px solid color-mix(in srgb, var(--border-subtle) 70%, transparent);
+          background: color-mix(in srgb, var(--bg-main) 92%, transparent);
+          color: var(--text-secondary);
+          font-size: 11px;
+          font-weight: 600;
+          letter-spacing: 0.4px;
+          text-transform: uppercase;
+          cursor: pointer;
+          opacity: 0;
+          pointer-events: none;
+          transform: translateY(-6px) scale(0.92);
+          transition: opacity 240ms ease,
+                      transform 420ms cubic-bezier(0.2, 0.9, 0.2, 1);
+        }
+
+        @media (max-width: 768px) {
+          .toc{
+            transition: transform 520ms cubic-bezier(0.2, 0.85, 0.2, 1),
+                        opacity 520ms cubic-bezier(0.2, 0.85, 0.2, 1);
+            transform-origin: top left;
+          }
+
+          .toc.is-collapsed,
+          .toc.is-collapsed:not(:hover):not(:focus-within){
+            transform: scale(0.02);
+            opacity: 0;
+          }
+
+          .toc.is-hidden{
+            display: none;
+          }
+
+          .toc-tab{
+            display: inline-flex;
+          }
+
+          .toc-tab.is-visible{
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateY(0) scale(1);
+          }
+        }
+
+        @media (max-width: 768px) and (prefers-reduced-motion: reduce) {
+          .toc,
+          .toc-tab{
+            transition: none !important;
+          }
+        }
+
         /* --- Grok-style starfield layer (behind content, above body background) --- */
         #grok-starfield{
           position: fixed;
@@ -1555,6 +1617,7 @@
         const toc = document.createElement("nav");
         toc.className = "toc";
         toc.setAttribute("aria-label", "Prompt techniques");
+        toc.id = "toc";
 
         const tocList = document.createElement("ul");
         tocList.className = "toc-list";
@@ -1593,6 +1656,132 @@
             }
         } else {
             document.body.appendChild(toc);
+        }
+
+        const mobileTocQuery = window.matchMedia("(max-width: 768px)");
+        const reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+        const tocToggle = document.createElement("button");
+        tocToggle.type = "button";
+        tocToggle.className = "toc-tab";
+        tocToggle.textContent = "TOC";
+        tocToggle.setAttribute("aria-controls", toc.id);
+        document.body.appendChild(tocToggle);
+
+        const TOC_STORAGE_KEY = "toc-collapsed-mobile";
+        let isMobileToc = mobileTocQuery.matches;
+        let isTocCollapsed = false;
+        let collapseToken = 0;
+
+        const getStoredTocState = () => {
+            try {
+                return window.localStorage.getItem(TOC_STORAGE_KEY) === "true";
+            } catch (error) {
+                return false;
+            }
+        };
+
+        const setStoredTocState = (collapsed) => {
+            try {
+                window.localStorage.setItem(TOC_STORAGE_KEY, collapsed ? "true" : "false");
+            } catch (error) {
+                /* ignore storage failures */
+            }
+        };
+
+        const updateTocToggle = () => {
+            tocToggle.setAttribute("aria-expanded", isTocCollapsed ? "false" : "true");
+            tocToggle.setAttribute(
+                "aria-label",
+                isTocCollapsed ? "Show table of contents" : "Hide table of contents"
+            );
+            tocToggle.classList.toggle("is-visible", isMobileToc && isTocCollapsed);
+        };
+
+        const applyCollapsedState = (collapsed, { animate = true, persist = false } = {}) => {
+            isTocCollapsed = collapsed;
+
+            if (persist && isMobileToc) {
+                setStoredTocState(collapsed);
+            }
+
+            toc.setAttribute("aria-hidden", collapsed ? "true" : "false");
+            updateTocToggle();
+
+            if (!isMobileToc) {
+                toc.classList.remove("is-collapsed", "is-hidden");
+                return;
+            }
+
+            collapseToken += 1;
+            const token = collapseToken;
+            const shouldAnimate = animate && !reducedMotionQuery.matches;
+
+            if (collapsed) {
+                toc.classList.remove("is-hidden");
+                toc.classList.add("is-collapsed");
+
+                if (!shouldAnimate) {
+                    toc.classList.add("is-hidden");
+                    return;
+                }
+
+                const onTransitionEnd = (event) => {
+                    if (event.propertyName !== "transform") {
+                        return;
+                    }
+                    toc.removeEventListener("transitionend", onTransitionEnd);
+                    if (collapseToken === token && isTocCollapsed) {
+                        toc.classList.add("is-hidden");
+                    }
+                };
+                toc.addEventListener("transitionend", onTransitionEnd);
+            } else {
+                toc.classList.remove("is-hidden");
+
+                if (!shouldAnimate) {
+                    toc.classList.remove("is-collapsed");
+                    return;
+                }
+
+                toc.classList.add("is-collapsed");
+                requestAnimationFrame(() => {
+                    if (collapseToken !== token) {
+                        return;
+                    }
+                    requestAnimationFrame(() => {
+                        if (collapseToken !== token) {
+                            return;
+                        }
+                        toc.classList.remove("is-collapsed");
+                    });
+                });
+            }
+        };
+
+        const syncTocForBreakpoint = (options = {}) => {
+            isMobileToc = mobileTocQuery.matches;
+            if (!isMobileToc) {
+                applyCollapsedState(false, { animate: false, persist: false });
+                return;
+            }
+
+            const storedCollapsed = getStoredTocState();
+            applyCollapsedState(storedCollapsed, { animate: options.animate ?? false, persist: false });
+        };
+
+        tocToggle.addEventListener("click", () => {
+            if (!isMobileToc) {
+                return;
+            }
+            applyCollapsedState(!isTocCollapsed, { animate: true, persist: true });
+        });
+
+        syncTocForBreakpoint({ animate: false });
+
+        if (mobileTocQuery.addEventListener) {
+            mobileTocQuery.addEventListener("change", () => syncTocForBreakpoint({ animate: false }));
+        } else if (mobileTocQuery.addListener) {
+            mobileTocQuery.addListener(() => syncTocForBreakpoint({ animate: false }));
         }
 
         let tocIsHovered = false;
