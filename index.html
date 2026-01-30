@@ -630,45 +630,46 @@
           letter-spacing: 0.4px;
           text-transform: uppercase;
           cursor: pointer;
-          opacity: 0;
-          pointer-events: none;
-          transform: translateY(-6px) scale(0.92);
-          transition: opacity 240ms ease,
-                      transform 420ms cubic-bezier(0.2, 0.9, 0.2, 1);
         }
 
         @media (max-width: 768px) {
-          .toc{
-            transition: transform 520ms cubic-bezier(0.2, 0.85, 0.2, 1),
-                        opacity 520ms cubic-bezier(0.2, 0.85, 0.2, 1);
-            transform-origin: top left;
+          @keyframes toc-genie-close{
+            from { transform: none; opacity: 1; }
+            to { transform: translate(-12px, -12px) scale(0.02); opacity: 0; }
           }
 
-          .toc.is-collapsed,
-          .toc.is-collapsed:not(:hover):not(:focus-within){
-            transform: scale(0.02);
-            opacity: 0;
-          }
-
-          .toc.is-hidden{
-            display: none;
+          @keyframes toc-genie-open{
+            from { transform: translate(-12px, -12px) scale(0.02); opacity: 0; }
+            to { transform: none; opacity: 1; }
           }
 
           .toc-tab{
             display: inline-flex;
           }
 
-          .toc-tab.is-visible{
-            opacity: 1;
-            pointer-events: auto;
-            transform: translateY(0) scale(1);
+          .toc.is-hidden{
+            display: none;
+          }
+
+          .toc.is-animating{
+            transform-origin: top left;
+            animation-duration: 520ms;
+            animation-timing-function: cubic-bezier(0.2, 0, 0.2, 1);
+            animation-fill-mode: both;
+          }
+
+          .toc.is-closing{
+            animation-name: toc-genie-close;
+          }
+
+          .toc.is-opening{
+            animation-name: toc-genie-open;
           }
         }
 
         @media (max-width: 768px) and (prefers-reduced-motion: reduce) {
-          .toc,
-          .toc-tab{
-            transition: none !important;
+          .toc.is-animating{
+            animation: none !important;
           }
         }
 
@@ -1617,7 +1618,6 @@
         const toc = document.createElement("nav");
         toc.className = "toc";
         toc.setAttribute("aria-label", "Prompt techniques");
-        toc.id = "toc";
 
         const tocList = document.createElement("ul");
         tocList.className = "toc-list";
@@ -1658,8 +1658,8 @@
             document.body.appendChild(toc);
         }
 
-        const mobileTocQuery = window.matchMedia("(max-width: 768px)");
-        const reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+        toc.id = "toc";
+
         const tocToggle = document.createElement("button");
         tocToggle.type = "button";
         tocToggle.className = "toc-tab";
@@ -1667,26 +1667,11 @@
         tocToggle.setAttribute("aria-controls", toc.id);
         document.body.appendChild(tocToggle);
 
-        const TOC_STORAGE_KEY = "toc-collapsed-mobile";
-        let isMobileToc = mobileTocQuery.matches;
+        const mobileTocQuery = window.matchMedia("(max-width: 768px)");
+        const reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+        const TOC_STORAGE_KEY = "tocCollapsed";
         let isTocCollapsed = false;
-        let collapseToken = 0;
-
-        const getStoredTocState = () => {
-            try {
-                return window.localStorage.getItem(TOC_STORAGE_KEY) === "true";
-            } catch (error) {
-                return false;
-            }
-        };
-
-        const setStoredTocState = (collapsed) => {
-            try {
-                window.localStorage.setItem(TOC_STORAGE_KEY, collapsed ? "true" : "false");
-            } catch (error) {
-                /* ignore storage failures */
-            }
-        };
+        let animationToken = 0;
 
         const updateTocToggle = () => {
             tocToggle.setAttribute("aria-expanded", isTocCollapsed ? "false" : "true");
@@ -1694,94 +1679,105 @@
                 "aria-label",
                 isTocCollapsed ? "Show table of contents" : "Hide table of contents"
             );
-            tocToggle.classList.toggle("is-visible", isMobileToc && isTocCollapsed);
         };
 
-        const applyCollapsedState = (collapsed, { animate = true, persist = false } = {}) => {
+        const setCollapsedState = (collapsed, { animate = true, persist = false } = {}) => {
+            const isMobile = mobileTocQuery.matches;
             isTocCollapsed = collapsed;
 
-            if (persist && isMobileToc) {
-                setStoredTocState(collapsed);
+            if (persist && isMobile) {
+                try {
+                    window.localStorage.setItem(TOC_STORAGE_KEY, collapsed ? "1" : "0");
+                } catch (error) {
+                    /* ignore storage failures */
+                }
             }
 
+            document.body.classList.toggle("toc-collapsed", collapsed && isMobile);
             toc.setAttribute("aria-hidden", collapsed ? "true" : "false");
             updateTocToggle();
 
-            if (!isMobileToc) {
-                toc.classList.remove("is-collapsed", "is-hidden");
+            if (!isMobile) {
+                toc.classList.remove("is-hidden", "is-opening", "is-closing", "is-animating");
                 return;
             }
 
-            collapseToken += 1;
-            const token = collapseToken;
+            animationToken += 1;
+            const token = animationToken;
             const shouldAnimate = animate && !reducedMotionQuery.matches;
+
+            const clearAnimation = () => {
+                toc.classList.remove("is-opening", "is-closing", "is-animating");
+            };
 
             if (collapsed) {
                 toc.classList.remove("is-hidden");
-                toc.classList.add("is-collapsed");
+                clearAnimation();
 
                 if (!shouldAnimate) {
                     toc.classList.add("is-hidden");
                     return;
                 }
 
-                const onTransitionEnd = (event) => {
-                    if (event.propertyName !== "transform") {
+                toc.classList.add("is-animating", "is-closing");
+                const onAnimationEnd = (event) => {
+                    if (event.target !== toc || token !== animationToken) {
                         return;
                     }
-                    toc.removeEventListener("transitionend", onTransitionEnd);
-                    if (collapseToken === token && isTocCollapsed) {
-                        toc.classList.add("is-hidden");
-                    }
+                    toc.classList.add("is-hidden");
+                    clearAnimation();
                 };
-                toc.addEventListener("transitionend", onTransitionEnd);
+                toc.addEventListener("animationend", onAnimationEnd, { once: true });
             } else {
                 toc.classList.remove("is-hidden");
+                clearAnimation();
 
                 if (!shouldAnimate) {
-                    toc.classList.remove("is-collapsed");
                     return;
                 }
 
-                toc.classList.add("is-collapsed");
-                requestAnimationFrame(() => {
-                    if (collapseToken !== token) {
+                if (token === animationToken) {
+                    toc.classList.add("is-animating", "is-opening");
+                }
+
+                const onAnimationEnd = (event) => {
+                    if (event.target !== toc || token !== animationToken) {
                         return;
                     }
-                    requestAnimationFrame(() => {
-                        if (collapseToken !== token) {
-                            return;
-                        }
-                        toc.classList.remove("is-collapsed");
-                    });
-                });
+                    clearAnimation();
+                };
+                toc.addEventListener("animationend", onAnimationEnd, { once: true });
             }
         };
 
-        const syncTocForBreakpoint = (options = {}) => {
-            isMobileToc = mobileTocQuery.matches;
-            if (!isMobileToc) {
-                applyCollapsedState(false, { animate: false, persist: false });
+        const syncForBreakpoint = () => {
+            if (!mobileTocQuery.matches) {
+                setCollapsedState(false, { animate: false, persist: false });
                 return;
             }
 
-            const storedCollapsed = getStoredTocState();
-            applyCollapsedState(storedCollapsed, { animate: options.animate ?? false, persist: false });
+            let storedCollapsed = false;
+            try {
+                storedCollapsed = window.localStorage.getItem(TOC_STORAGE_KEY) === "1";
+            } catch (error) {
+                storedCollapsed = false;
+            }
+            setCollapsedState(storedCollapsed, { animate: false, persist: false });
         };
 
         tocToggle.addEventListener("click", () => {
-            if (!isMobileToc) {
+            if (!mobileTocQuery.matches) {
                 return;
             }
-            applyCollapsedState(!isTocCollapsed, { animate: true, persist: true });
+            setCollapsedState(!isTocCollapsed, { animate: true, persist: true });
         });
 
-        syncTocForBreakpoint({ animate: false });
+        syncForBreakpoint();
 
         if (mobileTocQuery.addEventListener) {
-            mobileTocQuery.addEventListener("change", () => syncTocForBreakpoint({ animate: false }));
+            mobileTocQuery.addEventListener("change", syncForBreakpoint);
         } else if (mobileTocQuery.addListener) {
-            mobileTocQuery.addListener(() => syncTocForBreakpoint({ animate: false }));
+            mobileTocQuery.addListener(syncForBreakpoint);
         }
 
         let tocIsHovered = false;
