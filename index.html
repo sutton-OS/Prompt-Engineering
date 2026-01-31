@@ -35,6 +35,14 @@
 
         @font-face {
             font-family: "IBM Plex Sans";
+            src: url("IBMPlexSans-Thin.ttf") format("truetype");
+            font-weight: 200;
+            font-style: normal;
+            font-display: swap;
+        }
+
+        @font-face {
+            font-family: "IBM Plex Sans";
             src: url("IBMPlexSans-Medium.ttf") format("truetype");
             font-weight: 500;
             font-style: normal;
@@ -113,10 +121,22 @@
             font-size: 40px;
             font-weight: 600;
             letter-spacing: -0.005em;
-            margin: 24px 0 56px;
+            margin: 24px 0 12px;
             text-align: center;
             font-family: var(--font-body);
             color: var(--text-heading);
+        }
+
+        .title-credit {
+            margin: 0 0 56px;
+            display: block;
+            font-size: 14px;
+            font-weight: 200;
+            letter-spacing: 0.04em;
+            text-align: center;
+            text-transform: none;
+            color: var(--text-primary);
+            opacity: 0.7;
         }
 
         h2 {
@@ -280,6 +300,15 @@
             margin-bottom: 8px;
             font-weight: 500;
             opacity: 0.7;
+        }
+
+        h4.label {
+            font-size: 17px;
+            font-weight: 600;
+            color: var(--text-heading);
+            font-family: var(--font-body);
+            margin: 0 0 8px;
+            opacity: 1;
         }
 
         hr {
@@ -759,6 +788,7 @@
     </div>
     <main>
         <h1>Prompt Engineering</h1>
+        <p class="title-credit">prompted with love by tyler using GPT 5.2-Codex</p>
 
         <h2>Introduction</h2>
 
@@ -807,76 +837,124 @@
             <p>When facts matter, do not rely on the model’s memory. Provide sources (retrieval), require citations, or instruct tool use. When safety matters, treat untrusted text as data, not instructions.</p>
         </div>
 
-        <h4 class="intro-subhead">How this site is organized</h4>
-        <div class="technique-description">
-            <p>The techniques on this site are organized as patterns that solve specific failure modes. You can mix them, but each has a primary job.</p>
-        </div>
-        <div class="prompt-block">
-            <ul>
-                <li><strong>Instruction design:</strong> make the task unambiguous</li>
-                <li><strong>Examples:</strong> teach the pattern by demonstration</li>
-                <li><strong>Boundaries + output control:</strong> prevent drift and enforce structure</li>
-                <li><strong>Decomposition:</strong> break complex work into simpler wins</li>
-                <li><strong>Branch-and-select:</strong> generate options, then choose deliberately</li>
-                <li><strong>Critique + revision loops:</strong> add a second pass for accuracy and polish</li>
-                <li><strong>Tools + retrieval:</strong> ground answers in computation and sources</li>
-                <li><strong>Security patterns:</strong> resist prompt injection and untrusted instructions</li>
-            </ul>
-        </div>
-
         <div class="template-section" id="template-section">
             <div class="template-header">
-                <h4 class="intro-subhead">Two copy-paste templates</h4>
+                <h4 class="intro-subhead">Example</h4>
+            </div>
+
+            <div class="technique-description">
+                <p>Here’s an example of a prompt structure that showcases techniques I typically use: clear role definition, strict defaults, stepwise workflow, and an explicit output contract.</p>
+            
             </div>
 
             <div class="template-group" data-template-group>
-                <span class="label">Template: General-purpose “contract” prompt</span>
-                <div class="prompt-block template-card">
-                    <button class="copy-template" type="button" aria-label="Copy template" data-copy-state="idle">
-                        <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
-                            <rect x="8.5" y="8.5" width="11" height="11" rx="2.5" fill="none" stroke="currentColor" stroke-width="2.5"></rect>
-                            <rect x="4.5" y="4.5" width="11" height="11" rx="2.5" fill="none" stroke="currentColor" stroke-width="2.5"></rect>
-                        </svg>
-                    </button>
-                    <ul>
-                        <li><strong>Task:</strong> [one sentence]</li>
-                        <li><strong>Context:</strong> [what the model should know]</li>
-                        <li><strong>Constraints:</strong> [tone, length, what to avoid]</li>
-                        <li><strong>Output format:</strong> [sections / bullets / JSON fields]</li>
-                        <li><strong>Success checklist:</strong>
-                            <ul>
-                                <li>[must include]</li>
-                                <li>[must not include]</li>
-                                <li>[definition of “done”]</li>
-                            </ul>
-                        </li>
-                        <li><strong>Input:</strong> “…”</li>
-                    </ul>
+               
+                <div class="template-card">
+                    <button class="copy-template" type="button" aria-label="Copy prompt" data-copy-state="idle">⧉</button>
+                    <div class="prompt-block">
+                        <p><strong>ROLE</strong><br>
+                        You are a leading biblical studies scholar. You are fluent in historical-critical method, theological traditions, literary/canonical approaches, and traditional exegesis.</p>
+
+                        <p><strong>INPUT</strong><br>
+                        Essay (paste below):<br>
+                        <code>&lt;&lt;&lt;PASTE ESSAY HERE&gt;&gt;&gt;</code></p>
+
+                        <p><strong>DEFAULTS</strong> (only override if the essay specifies otherwise)</p>
+                        <ul>
+                            <li><strong>Scripture translation:</strong> preserve the essay’s translation; if none is explicit, use NRSVue.</li>
+                            <li><strong>Citation system:</strong> SBL footnotes + final bibliography.</li>
+                            <li><strong>Audience:</strong> academically literate, non-specialist.</li>
+                        </ul>
+
+                        <p><strong>PROCESS</strong> (do not print your working notes)</p>
+                        <ol>
+                            <li>Diagnose the essay: identify its thesis, argument structure, strongest claims, weakest claims, and all scriptural references (book/chapter/verse).</li>
+                            <li>Interpretive survey: for each key passage/claim, integrate balanced evidence from:
+                                <ol type="a">
+                                    <li>Historical-critical scholarship (e.g., source, form, redaction, social-historical context)</li>
+                                    <li>Major theological trajectories (patristic, medieval, Reformation, modern)</li>
+                                    <li>Literary/canonical approaches</li>
+                                    <li>Major denominational perspectives (name the perspective only when it materially affects interpretation)</li>
+                                </ol>
+                            </li>
+                            <li>Synthesis: select the best-supported interpretation(s) and explicitly note any major, live scholarly disputes that affect the thesis.</li>
+                        </ol>
+
+                        <p><strong>CITATION INTEGRITY</strong></p>
+                        <ul>
+                            <li>Do NOT invent sources, page numbers, or quotations.</li>
+                            <li>Cite only works you can name with confidence as real and relevant.</li>
+                            <li>If a citation is plausible but you cannot verify details, include a bracketed placeholder like: <code>[verify exact edition/page]</code>.</li>
+                            <li>If the essay makes a historical claim that is uncertain or contested, qualify it (“likely,” “commonly argued,” “disputed”) and cite responsibly.</li>
+                        </ul>
+
+                        <p><strong>OUTPUT</strong></p>
+                        <p><strong>A)</strong> First: a 2–3 sentence “Analytical Synthesis” that states:
+                        the strongest interpretive frame you’re using; the most important debated point; whether the original thesis is sustainable (yes/no/partially), in one clause.</p>
+
+                        <p><strong>B)</strong> Then: the rewritten essay to postdoctoral standards:</p>
+                        <ul>
+                            <li>Retain and strengthen the thesis unless demonstrably unsustainable; if unsustainable, replace with the nearest defensible thesis.</li>
+                            <li>Clear structure: introduction (thesis + method), 2–4 argument sections with headings, conclusion.</li>
+                            <li>Length: 20–30% longer than the original (±5% acceptable) for added rigor while staying focused.</li>
+                            <li>Tone: objective, rigorous, charitable.</li>
+                            <li>Use SBL-style footnotes and a brief bibliography of the sources you actually cited.</li>
+                        </ul>
+
+                        <p><strong>Return ONLY sections A and B, with no extra commentary.</strong></p>
+                    </div>
                 </div>
             </div>
 
             <div class="template-group" data-template-group>
-                <span class="label">Template: Grounded answering (use only provided sources)</span>
-                <div class="prompt-block template-card">
-                    <button class="copy-template" type="button" aria-label="Copy template" data-copy-state="idle">
-                        <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
-                            <rect x="8.5" y="8.5" width="11" height="11" rx="2.5" fill="none" stroke="currentColor" stroke-width="2.5"></rect>
-                            <rect x="4.5" y="4.5" width="11" height="11" rx="2.5" fill="none" stroke="currentColor" stroke-width="2.5"></rect>
-                        </svg>
-                    </button>
-                    <ul>
-                        <li>Use only the content inside <strong>&lt;sources&gt;</strong>. Do not use outside knowledge.</li>
-                        <li>If a claim is not supported, write: <strong>Not supported by sources</strong>.</li>
-                        <li>After each factual claim, add a citation like <strong>[S1]</strong>.</li>
-                        <li>Output format: <strong>Answer</strong> (short), then <strong>Evidence</strong> (bullets).</li>
-                    </ul>
-                    <p><strong>&lt;sources&gt;</strong><br>
-                    [S1] …<br>
-                    [S2] …<br>
-                    <strong>&lt;/sources&gt;</strong></p>
-                    <p><strong>Question:</strong> “…”</p>
+                <h4 class="label">Technique Breakdown</h4>
+                <div class="template-card">
+                    <button class="copy-template" type="button" aria-label="Copy technique breakdown" data-copy-state="idle">⧉</button>
+                    <div class="prompt-block">
+                        <ul>
+                            <li><strong>Role Prompting</strong> — “You are a leading biblical studies scholar…”</li>
+                            <li><strong>Expertise Constraints (Multi-lens)</strong> — “fluent in historical-critical… theological traditions… literary/canonical… traditional exegesis”</li>
+                            <li><strong>Delimiters / Tagging</strong> — “Essay (paste below): … &lt;&lt;&lt;PASTE ESSAY HERE&gt;&gt;&gt;”</li>
+                            <li><strong>Defaults + Conditional Overrides</strong> — “DEFAULTS (only override if the essay specifies otherwise)”</li>
+                            <li><strong>Hidden-Notes Constraint</strong> — “PROCESS (do not print your working notes)”</li>
+                            <li><strong>Decomposition / Stepwise Workflow</strong> — “1) Diagnose… 2) Interpretive survey… 3) Synthesis…”</li>
+                            <li><strong>Evaluation Checklist</strong> — “identify its thesis… strongest claims… weakest claims… scriptural references”</li>
+                            <li><strong>Balanced Evidence Constraint</strong> — “integrate balanced evidence from: a) … b) … c) … d) …”</li>
+                            <li><strong>Synthesis / Select-the-Best</strong> — “select the best-supported interpretation(s)”</li>
+                            <li><strong>Debate Acknowledgment</strong> — “note any major, live scholarly disputes”</li>
+                            <li><strong>Citation Integrity / Anti-Hallucination Guardrails</strong> — “Do NOT invent sources… Cite only works you can name… [verify exact edition/page]”</li>
+                            <li><strong>Output Contract</strong> — “OUTPUT … A) … B) … Return ONLY sections A and B”</li>
+                            <li><strong>Quality Benchmarking</strong> — “rewritten essay to postdoctoral standards”</li>
+                            <li><strong>Fidelity Constraint (Conditional Thesis Preservation)</strong> — “Retain and strengthen the thesis unless demonstrably unsustainable”</li>
+                            <li><strong>Structural Scaffolding</strong> — “Clear structure: introduction… 2–4 argument sections… conclusion”</li>
+                            <li><strong>Length Constraint</strong> — “Length: 20–30% longer…”</li>
+                            <li><strong>Tone Constraint</strong> — “Tone: objective, rigorous, charitable.”</li>
+                        </ul>
+                    </div>
                 </div>
             </div>
+        </div>
+
+        <h4 class="intro-subhead">This site</h4>
+        <div class="technique-description">
+            <p>The following sections of this site teach different prompt techniques and are organized by category:</p>
+        </div>
+        <div class="prompt-block">
+            <ol>
+                <li><strong>Instruction Design &amp; Constraints</strong></li>
+                <li><strong>Example-Driven Prompting</strong></li>
+                <li><strong>Boundary &amp; Output Control</strong></li>
+                <li><strong>Decomposition &amp; Ask-First Prompting</strong></li>
+                <li><strong>Branch-and-Select Reasoning</strong></li>
+                <li><strong>Critique, Verification &amp; Revision Loops</strong></li>
+                <li><strong>Tool-Oriented Prompting &amp; Agent Workflows</strong></li>
+                <li><strong>Retrieval-Grounded Answering</strong></li>
+                <li><strong>Long-Context Summarization Patterns</strong></li>
+                <li><strong>Perspective &amp; Simulation Techniques</strong></li>
+                <li><strong>Multimodal Prompting</strong></li>
+                <li><strong>Security &amp; Operational Safety Patterns</strong></li>
+                <li><strong>Advanced Jailbreak &amp; Adversarial Techniques</strong></li>
+            </ol>
         </div>
 
         <h2>1. Instruction Design &amp; Constraints</h2>
@@ -1979,8 +2057,14 @@
 
         const getDistance = (section) => {
             const rect = section.getBoundingClientRect();
-            const sectionCenter = rect.top + rect.height / 2;
-            return Math.abs(sectionCenter - window.innerHeight / 2);
+            const viewportCenter = window.innerHeight / 2;
+            if (rect.top <= viewportCenter && rect.bottom >= viewportCenter) {
+                return 0;
+            }
+            return Math.min(
+                Math.abs(rect.top - viewportCenter),
+                Math.abs(rect.bottom - viewportCenter)
+            );
         };
 
         const getClosestSection = () => {
