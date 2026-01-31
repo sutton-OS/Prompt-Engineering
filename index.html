@@ -610,65 +610,90 @@
           outline: none;
         }
 
-        /* === TOC: mobile toggle tab + genie collapse === */
-        .toc-tab{
+        /* === TOC: mobile handle + genie strips === */
+        .toc-handle{
           position: fixed;
-          top: 10px;
-          left: 10px;
+          left: 0;
+          top: calc(env(safe-area-inset-top, 0px) + 18px);
           z-index: 60;
           display: none;
           align-items: center;
           justify-content: center;
-          height: 24px;
-          padding: 0 8px;
-          border-radius: 12px;
+          width: 20px;
+          height: 60px;
+          border-radius: 999px;
           border: 1px solid color-mix(in srgb, var(--border-subtle) 70%, transparent);
-          background: color-mix(in srgb, var(--bg-main) 92%, transparent);
+          background: transparent;
           color: var(--text-secondary);
-          font-size: 11px;
+          font-size: 14px;
           font-weight: 600;
-          letter-spacing: 0.4px;
-          text-transform: uppercase;
+          line-height: 1;
+          padding: 0;
           cursor: pointer;
         }
 
+        .toc-genie-overlay{
+          position: fixed;
+          left: 0;
+          top: 0;
+          width: 100%;
+          height: 100%;
+          pointer-events: none;
+          perspective: 900px;
+          perspective-origin: left center;
+          z-index: 70;
+        }
+
+        .toc-strip{
+          position: absolute;
+          top: 0;
+          height: 100%;
+          overflow: hidden;
+          transform-style: preserve-3d;
+          transform-origin: left center;
+          animation-duration: 520ms;
+          animation-timing-function: cubic-bezier(0.2, 0, 0.2, 1);
+          animation-fill-mode: both;
+          animation-delay: var(--delay);
+          will-change: transform;
+        }
+
+        .toc-strip-inner{
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          transform-style: preserve-3d;
+          backface-visibility: hidden;
+        }
+
+        .toc-strip.is-closing{
+          animation-name: toc-genie-close;
+        }
+
+        .toc-strip.is-opening{
+          animation-name: toc-genie-open;
+        }
+
         @media (max-width: 768px) {
-          @keyframes toc-genie-close{
-            from { transform: none; opacity: 1; }
-            to { transform: translate(-12px, -12px) scale(0.02); opacity: 0; }
-          }
-
-          @keyframes toc-genie-open{
-            from { transform: translate(-12px, -12px) scale(0.02); opacity: 0; }
-            to { transform: none; opacity: 1; }
-          }
-
-          .toc-tab{
+          .toc-handle{
             display: inline-flex;
           }
 
-          .toc.is-hidden{
-            display: none;
+          @keyframes toc-genie-close{
+            from { transform: translate3d(0,0,0) rotateY(0deg); }
+            to { transform: translate3d(var(--dx), var(--dy), 0) rotateY(var(--rot)) translateZ(120px) scaleX(0.05); }
           }
 
-          .toc.is-animating{
-            transform-origin: top left;
-            animation-duration: 520ms;
-            animation-timing-function: cubic-bezier(0.2, 0, 0.2, 1);
-            animation-fill-mode: both;
-          }
-
-          .toc.is-closing{
-            animation-name: toc-genie-close;
-          }
-
-          .toc.is-opening{
-            animation-name: toc-genie-open;
+          @keyframes toc-genie-open{
+            from { transform: translate3d(var(--dx), var(--dy), 0) rotateY(var(--rot)) translateZ(120px) scaleX(0.05); }
+            to { transform: translate3d(0,0,0) rotateY(0deg); }
           }
         }
 
         @media (max-width: 768px) and (prefers-reduced-motion: reduce) {
-          .toc.is-animating{
+          .toc-strip{
             animation: none !important;
           }
         }
@@ -1660,30 +1685,99 @@
 
         toc.id = "toc";
 
-        const tocToggle = document.createElement("button");
-        tocToggle.type = "button";
-        tocToggle.className = "toc-tab";
-        tocToggle.textContent = "TOC";
-        tocToggle.setAttribute("aria-controls", toc.id);
-        document.body.appendChild(tocToggle);
+        const handle = document.createElement("button");
+        handle.type = "button";
+        handle.className = "toc-handle";
+        handle.textContent = ">";
+        handle.setAttribute("aria-controls", "toc");
+        handle.setAttribute("aria-label", "Toggle table of contents");
+        handle.setAttribute("aria-expanded", "true");
+        document.body.appendChild(handle);
 
-        const mobileTocQuery = window.matchMedia("(max-width: 768px)");
-        const reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+        const mqMobile = window.matchMedia("(max-width: 768px)");
+        const mqReduce = window.matchMedia("(prefers-reduced-motion: reduce)");
         const TOC_STORAGE_KEY = "tocCollapsed";
-        let isTocCollapsed = false;
+        const STRIP_COUNT = 14;
+        const STRIP_DELAY = 8;
+        const STRIP_DURATION = 520;
+        let tocCollapsed = false;
+        let overlay = null;
         let animationToken = 0;
 
-        const updateTocToggle = () => {
-            tocToggle.setAttribute("aria-expanded", isTocCollapsed ? "false" : "true");
-            tocToggle.setAttribute(
-                "aria-label",
-                isTocCollapsed ? "Show table of contents" : "Hide table of contents"
-            );
+        const setHandleState = () => {
+            handle.setAttribute("aria-expanded", tocCollapsed ? "false" : "true");
+        };
+
+        const clearOverlay = () => {
+            if (overlay) {
+                overlay.remove();
+                overlay = null;
+            }
+        };
+
+        const createStripsFromElement = (el, stripCount) => {
+            const rect = el.getBoundingClientRect();
+            const overlayEl = document.createElement("div");
+            overlayEl.className = "toc-genie-overlay";
+            overlayEl.style.left = `${rect.left}px`;
+            overlayEl.style.top = `${rect.top}px`;
+            overlayEl.style.width = `${rect.width}px`;
+            overlayEl.style.height = `${rect.height}px`;
+            overlayEl.setAttribute("aria-hidden", "true");
+
+            const handleRect = handle.getBoundingClientRect();
+            const targetX = handleRect.left + handleRect.width / 2;
+            const targetY = handleRect.top + handleRect.height / 2;
+            const stripWidth = rect.width / stripCount;
+            const strips = [];
+
+            for (let i = 0; i < stripCount; i += 1) {
+                const strip = document.createElement("div");
+                strip.className = "toc-strip";
+                strip.style.left = `${i * stripWidth}px`;
+                strip.style.width = `${stripWidth}px`;
+                strip.style.height = `${rect.height}px`;
+
+                const stripCenterX = rect.left + (i + 0.5) * stripWidth;
+                const stripCenterY = rect.top + rect.height / 2;
+                const dx = targetX - stripCenterX;
+                const dy = targetY - stripCenterY;
+                const rot = (i - (stripCount - 1) / 2) * 3;
+                const delay = i * STRIP_DELAY;
+
+                strip.style.setProperty("--dx", `${dx}px`);
+                strip.style.setProperty("--dy", `${dy}px`);
+                strip.style.setProperty("--rot", `${rot}deg`);
+                strip.style.setProperty("--delay", `${delay}ms`);
+                strip.style.animationDelay = `${delay}ms`;
+
+                const inner = document.createElement("div");
+                inner.className = "toc-strip-inner";
+
+                const clone = el.cloneNode(true);
+                clone.removeAttribute("id");
+                clone.style.position = "absolute";
+                clone.style.left = `${-i * stripWidth}px`;
+                clone.style.top = "0";
+                clone.style.width = `${rect.width}px`;
+                clone.style.height = `${rect.height}px`;
+                clone.style.pointerEvents = "none";
+                clone.style.visibility = "visible";
+
+                inner.appendChild(clone);
+                strip.appendChild(inner);
+                overlayEl.appendChild(strip);
+                strips.push(strip);
+            }
+
+            document.body.appendChild(overlayEl);
+            return { overlay: overlayEl, strips };
         };
 
         const setCollapsedState = (collapsed, { animate = true, persist = false } = {}) => {
-            const isMobile = mobileTocQuery.matches;
-            isTocCollapsed = collapsed;
+            const isMobile = mqMobile.matches;
+            tocCollapsed = collapsed;
+            setHandleState();
 
             if (persist && isMobile) {
                 try {
@@ -1695,64 +1789,81 @@
 
             document.body.classList.toggle("toc-collapsed", collapsed && isMobile);
             toc.setAttribute("aria-hidden", collapsed ? "true" : "false");
-            updateTocToggle();
 
             if (!isMobile) {
-                toc.classList.remove("is-hidden", "is-opening", "is-closing", "is-animating");
+                animationToken += 1;
+                clearOverlay();
+                toc.style.display = "";
+                toc.style.visibility = "";
                 return;
             }
 
             animationToken += 1;
             const token = animationToken;
-            const shouldAnimate = animate && !reducedMotionQuery.matches;
-
-            const clearAnimation = () => {
-                toc.classList.remove("is-opening", "is-closing", "is-animating");
-            };
+            const shouldAnimate = animate && !mqReduce.matches;
+            const totalDuration = STRIP_DURATION + (STRIP_COUNT - 1) * STRIP_DELAY;
 
             if (collapsed) {
-                toc.classList.remove("is-hidden");
-                clearAnimation();
-
                 if (!shouldAnimate) {
-                    toc.classList.add("is-hidden");
+                    clearOverlay();
+                    toc.style.display = "none";
+                    toc.style.visibility = "";
                     return;
                 }
 
-                toc.classList.add("is-animating", "is-closing");
-                const onAnimationEnd = (event) => {
-                    if (event.target !== toc || token !== animationToken) {
+                clearOverlay();
+                const created = createStripsFromElement(toc, STRIP_COUNT);
+                overlay = created.overlay;
+                toc.style.visibility = "hidden";
+                created.strips.forEach((strip) => strip.classList.add("is-closing"));
+
+                window.setTimeout(() => {
+                    if (token !== animationToken) {
                         return;
                     }
-                    toc.classList.add("is-hidden");
-                    clearAnimation();
-                };
-                toc.addEventListener("animationend", onAnimationEnd, { once: true });
-            } else {
-                toc.classList.remove("is-hidden");
-                clearAnimation();
-
-                if (!shouldAnimate) {
-                    return;
-                }
-
-                if (token === animationToken) {
-                    toc.classList.add("is-animating", "is-opening");
-                }
-
-                const onAnimationEnd = (event) => {
-                    if (event.target !== toc || token !== animationToken) {
-                        return;
-                    }
-                    clearAnimation();
-                };
-                toc.addEventListener("animationend", onAnimationEnd, { once: true });
+                    clearOverlay();
+                    toc.style.display = "none";
+                    toc.style.visibility = "";
+                }, totalDuration);
+                return;
             }
+
+            toc.style.display = "";
+
+            if (!shouldAnimate) {
+                clearOverlay();
+                toc.style.visibility = "";
+                return;
+            }
+
+            toc.style.visibility = "hidden";
+            clearOverlay();
+            const created = createStripsFromElement(toc, STRIP_COUNT);
+            overlay = created.overlay;
+            created.strips.forEach((strip) => strip.classList.add("is-opening"));
+
+            window.setTimeout(() => {
+                if (token !== animationToken) {
+                    return;
+                }
+                clearOverlay();
+                toc.style.visibility = "";
+            }, totalDuration);
         };
 
         const syncForBreakpoint = () => {
-            if (!mobileTocQuery.matches) {
-                setCollapsedState(false, { animate: false, persist: false });
+            const isMobile = mqMobile.matches;
+            handle.hidden = !isMobile;
+
+            if (!isMobile) {
+                tocCollapsed = false;
+                document.body.classList.remove("toc-collapsed");
+                animationToken += 1;
+                clearOverlay();
+                toc.style.display = "";
+                toc.style.visibility = "";
+                toc.setAttribute("aria-hidden", "false");
+                setHandleState();
                 return;
             }
 
@@ -1765,19 +1876,19 @@
             setCollapsedState(storedCollapsed, { animate: false, persist: false });
         };
 
-        tocToggle.addEventListener("click", () => {
-            if (!mobileTocQuery.matches) {
+        handle.addEventListener("click", () => {
+            if (!mqMobile.matches) {
                 return;
             }
-            setCollapsedState(!isTocCollapsed, { animate: true, persist: true });
+            setCollapsedState(!tocCollapsed, { animate: true, persist: true });
         });
 
         syncForBreakpoint();
 
-        if (mobileTocQuery.addEventListener) {
-            mobileTocQuery.addEventListener("change", syncForBreakpoint);
-        } else if (mobileTocQuery.addListener) {
-            mobileTocQuery.addListener(syncForBreakpoint);
+        if (mqMobile.addEventListener) {
+            mqMobile.addEventListener("change", syncForBreakpoint);
+        } else if (mqMobile.addListener) {
+            mqMobile.addListener(syncForBreakpoint);
         }
 
         let tocIsHovered = false;
