@@ -455,7 +455,8 @@
               margin: 8px 0 20px;
               padding: 10px 8px;
               transform: none;
-              opacity: 1;
+              opacity: 1 !important;
+              transition: none !important;
             }
 
             .toc:not(:hover):not(:focus-within){
@@ -1688,7 +1689,7 @@
         const handle = document.createElement("button");
         handle.type = "button";
         handle.className = "toc-handle";
-        handle.textContent = ">";
+        handle.textContent = "☰";
         handle.setAttribute("aria-controls", "toc");
         handle.setAttribute("aria-label", "Toggle table of contents");
         handle.setAttribute("aria-expanded", "true");
@@ -1869,7 +1870,13 @@
 
             let storedCollapsed = false;
             try {
-                storedCollapsed = window.localStorage.getItem(TOC_STORAGE_KEY) === "1";
+                const storedValue = window.localStorage.getItem(TOC_STORAGE_KEY);
+                if (storedValue === null) {
+                    window.localStorage.setItem(TOC_STORAGE_KEY, "1");
+                    storedCollapsed = true;
+                } else {
+                    storedCollapsed = storedValue === "1";
+                }
             } catch (error) {
                 storedCollapsed = false;
             }
