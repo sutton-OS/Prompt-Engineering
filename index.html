@@ -4,8 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Prompting Engineering Techniques</title>
-    <link rel="preload" href="IBMPlexSans-Regular.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="preload" href="IBMPlexSans-SemiBold.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="IBMPlexSans-Thin.woff2" as="font" type="font/woff2" fetchpriority="high">
+    <link rel="preload" href="IBMPlexSans-Regular.woff2" as="font" type="font/woff2" fetchpriority="high">
+    <link rel="preload" href="IBMPlexSans-Medium.woff2" as="font" type="font/woff2" fetchpriority="high">
+    <link rel="preload" href="IBMPlexSans-SemiBold.woff2" as="font" type="font/woff2" fetchpriority="high">
     <script>
         (() => {
             try {
@@ -25,12 +27,28 @@
                 /* ignore storage failures */
             }
         })();
+        (() => {
+            if (!("fonts" in document)) {
+                return;
+            }
+            const family = "IBM Plex Sans";
+            const weights = [200, 400, 500, 600];
+            const warm = () => {
+                weights.forEach((weight) => {
+                    document.fonts.load(`${weight} 1em ${family}`);
+                });
+            };
+            if (document.readyState === "loading") {
+                window.requestAnimationFrame(warm);
+            } else {
+                warm();
+            }
+        })();
     </script>
     <style>
         @font-face {
             font-family: "IBM Plex Sans";
-            src: url("IBMPlexSans-Regular.woff2") format("woff2"),
-                 url("IBMPlexSans-Regular.ttf") format("truetype");
+            src: url("IBMPlexSans-Regular.woff2") format("woff2");
             font-weight: 400;
             font-style: normal;
             font-display: swap;
@@ -38,8 +56,7 @@
 
         @font-face {
             font-family: "IBM Plex Sans";
-            src: url("IBMPlexSans-Thin.woff2") format("woff2"),
-                 url("IBMPlexSans-Thin.ttf") format("truetype");
+            src: url("IBMPlexSans-Thin.woff2") format("woff2");
             font-weight: 200;
             font-style: normal;
             font-display: swap;
@@ -47,8 +64,7 @@
 
         @font-face {
             font-family: "IBM Plex Sans";
-            src: url("IBMPlexSans-Medium.woff2") format("woff2"),
-                 url("IBMPlexSans-Medium.ttf") format("truetype");
+            src: url("IBMPlexSans-Medium.woff2") format("woff2");
             font-weight: 500;
             font-style: normal;
             font-display: swap;
@@ -56,8 +72,7 @@
 
         @font-face {
             font-family: "IBM Plex Sans";
-            src: url("IBMPlexSans-SemiBold.woff2") format("woff2"),
-                 url("IBMPlexSans-SemiBold.ttf") format("truetype");
+            src: url("IBMPlexSans-SemiBold.woff2") format("woff2");
             font-weight: 600;
             font-style: normal;
             font-display: swap;
@@ -77,7 +92,7 @@
             --accent-blue: #05a1f0;
 
             /* Typography */
-            --font-body: "IBM Plex Sans";
+            --font-body: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 
             /* Scrollytelling */
             --chapter-vh: 132vh;
@@ -434,29 +449,17 @@
 
         /* Responsive */
         @media (max-width: 768px) {
-            :root { --chapter-vh: auto; }
+            :root { --chapter-vh: 120vh; }
             .container { padding: 24px 18px 0; }
             main { padding-bottom: 80px; }
             h1 { font-size: 32px; margin: 16px 0 32px; }
             h2 { font-size: 20px; margin-top: 36px; }
             .theme-toggle { justify-content: flex-end; }
-            .tech { min-height: auto; margin-bottom: 28px; }
             .tech-content {
-              position: static;
-              top: auto;
-              padding: 0;
-              max-width: none;
-            }
-            body.scrolly-on.scrolly-mobile .tech{
-              opacity: 0;
-              transform: translateY(14px);
-              transition: opacity 360ms cubic-bezier(0.2, 0, 0.2, 1),
-                          transform 420ms cubic-bezier(0.2, 0, 0.2, 1);
-            }
-
-            body.scrolly-on.scrolly-mobile .tech.is-revealed{
-              opacity: 1;
-              transform: none;
+              position: sticky;
+              top: 10vh;
+              padding: 6vh 0 16vh;
+              max-width: 680px;
             }
             .copy-template { width: 26px; height: 26px; border-radius: 6px; }
             .prompt-block{
@@ -475,6 +478,7 @@
               transform: none;
               opacity: 1 !important;
               transition: none !important;
+              animation: none !important;
             }
 
             html.toc-prehide .toc{
@@ -493,35 +497,29 @@
             }
         }
 
-        @media (max-width: 768px) and (prefers-reduced-motion: reduce) {
-          body.scrolly-on.scrolly-mobile .tech{
-            opacity: 1;
-            transform: none;
-            transition: none;
+        @media (min-width: 769px) {
+          /* === TOC: subtle rectangular control (no border) === */
+          .toc{
+            position: fixed;
+            top: 18px;
+            left: 18px;
+            z-index: 50;
+
+            width: 300px;                 /* smaller */
+            padding: 7px 7px 8px;         /* smaller */
+            border: none !important;      /* NO BORDER */
+            border-radius: 6px;           /* sharper but not boxy */
+            box-shadow: none;
+
+            background: var(--bg-main); /* match page background */
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+
+            opacity: 0.90;
+            transition: opacity 520ms ease;
+            transform: scale(0.935);
+            transform-origin: top left;
           }
-        }
-
-        /* === TOC: subtle rectangular control (no border) === */
-        .toc{
-          position: fixed;
-          top: 18px;
-          left: 18px;
-          z-index: 50;
-
-          width: 300px;                 /* smaller */
-          padding: 7px 7px 8px;         /* smaller */
-          border: none !important;      /* NO BORDER */
-          border-radius: 6px;           /* sharper but not boxy */
-          box-shadow: none;
-
-          background: var(--bg-main); /* match page background */
-          backdrop-filter: blur(4px);
-          -webkit-backdrop-filter: blur(4px);
-
-          opacity: 0.90;
-          transition: opacity 520ms ease;
-          transform: scale(0.935);
-          transform-origin: top left;
         }
 
         @media (min-width: 769px) and (hover: hover) {
@@ -1636,7 +1634,6 @@
     if (sections.length) {
         document.body.classList.add("scrolly-on");
         const mqMobile = window.matchMedia("(max-width: 768px)");
-        const mqReduce = window.matchMedia("(prefers-reduced-motion: reduce)");
 
         const slugCounts = new Map();
         const slugify = (text) => {
@@ -1659,50 +1656,6 @@
             section.id = slug;
             return { section, title, slug };
         });
-
-        let revealObserver = null;
-
-        const clearRevealObserver = () => {
-            if (revealObserver) {
-                revealObserver.disconnect();
-                revealObserver = null;
-            }
-        };
-
-        const syncMobileReveal = () => {
-            const isMobile = mqMobile.matches;
-            document.body.classList.toggle("scrolly-mobile", isMobile);
-            clearRevealObserver();
-
-            if (!isMobile) {
-                sections.forEach((section) => section.classList.remove("is-revealed"));
-                return;
-            }
-
-            if (mqReduce.matches || !("IntersectionObserver" in window)) {
-                sections.forEach((section) => section.classList.add("is-revealed"));
-                return;
-            }
-
-            sections.forEach((section) => section.classList.remove("is-revealed"));
-            const observer = new IntersectionObserver(
-                (entries) => {
-                    entries.forEach((entry) => {
-                        if (entry.isIntersecting) {
-                            entry.target.classList.add("is-revealed");
-                            observer.unobserve(entry.target);
-                        }
-                    });
-                },
-                {
-                    root: null,
-                    threshold: 0.2,
-                    rootMargin: "0px 0px -12% 0px"
-                }
-            );
-            revealObserver = observer;
-            sections.forEach((section) => observer.observe(section));
-        };
 
         const toc = document.createElement("nav");
         toc.className = "toc";
@@ -1839,17 +1792,14 @@
         });
 
         syncForBreakpoint();
-        syncMobileReveal();
 
         if (mqMobile.addEventListener) {
             mqMobile.addEventListener("change", () => {
                 syncForBreakpoint();
-                syncMobileReveal();
             });
         } else if (mqMobile.addListener) {
             mqMobile.addListener(() => {
                 syncForBreakpoint();
-                syncMobileReveal();
             });
         }
 
