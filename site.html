@@ -1660,7 +1660,7 @@
     if (sections.length) {
         document.body.classList.add("scrolly-on");
         const mqMobile = window.matchMedia("(max-width: 768px)");
-        const isMobile = () => window.matchMedia("(max-width: 768px)").matches;
+        const isMobile = () => mqMobile.matches;
 
         const slugCounts = new Map();
         const slugify = (text) => {
@@ -1715,7 +1715,6 @@
         });
 
         toc.appendChild(tocList);
-        const main = document.querySelector("main");
         if (main) {
             const title = main.querySelector("h1");
             if (title) {
@@ -2065,10 +2064,9 @@
       let nextShootAt = 0;
       let lastT = performance.now();
 
-      const prefersReducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ?? false;
+      const prefersReducedMotion = reduceMotion;
 
       function rand(min, max) { return min + Math.random() * (max - min); }
-      function randi(min, max) { return Math.floor(rand(min, max + 1)); }
 
       function isDarkTheme() {
         return document.body?.dataset?.theme === "dark";
