@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Prompting Engineering Techniques</title>
+    <link rel="preload" href="IBMPlexSans-Regular.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="IBMPlexSans-SemiBold.woff2" as="font" type="font/woff2" crossorigin>
     <script>
         (() => {
             try {
@@ -27,7 +29,8 @@
     <style>
         @font-face {
             font-family: "IBM Plex Sans";
-            src: url("IBMPlexSans-Regular.ttf") format("truetype");
+            src: url("IBMPlexSans-Regular.woff2") format("woff2"),
+                 url("IBMPlexSans-Regular.ttf") format("truetype");
             font-weight: 400;
             font-style: normal;
             font-display: swap;
@@ -35,7 +38,8 @@
 
         @font-face {
             font-family: "IBM Plex Sans";
-            src: url("IBMPlexSans-Thin.ttf") format("truetype");
+            src: url("IBMPlexSans-Thin.woff2") format("woff2"),
+                 url("IBMPlexSans-Thin.ttf") format("truetype");
             font-weight: 200;
             font-style: normal;
             font-display: swap;
@@ -43,7 +47,8 @@
 
         @font-face {
             font-family: "IBM Plex Sans";
-            src: url("IBMPlexSans-Medium.ttf") format("truetype");
+            src: url("IBMPlexSans-Medium.woff2") format("woff2"),
+                 url("IBMPlexSans-Medium.ttf") format("truetype");
             font-weight: 500;
             font-style: normal;
             font-display: swap;
@@ -51,7 +56,8 @@
 
         @font-face {
             font-family: "IBM Plex Sans";
-            src: url("IBMPlexSans-SemiBold.ttf") format("truetype");
+            src: url("IBMPlexSans-SemiBold.woff2") format("woff2"),
+                 url("IBMPlexSans-SemiBold.ttf") format("truetype");
             font-weight: 600;
             font-style: normal;
             font-display: swap;
@@ -441,13 +447,16 @@
               padding: 0;
               max-width: none;
             }
-            body.scrolly-on .tech,
-            body.scrolly-on .tech.is-prev,
-            body.scrolly-on .tech.is-next,
-            body.scrolly-on .tech.is-active{
+            body.scrolly-on.scrolly-mobile .tech{
+              opacity: 0;
+              transform: translateY(14px);
+              transition: opacity 360ms cubic-bezier(0.2, 0, 0.2, 1),
+                          transform 420ms cubic-bezier(0.2, 0, 0.2, 1);
+            }
+
+            body.scrolly-on.scrolly-mobile .tech.is-revealed{
               opacity: 1;
               transform: none;
-              transition: none;
             }
             .copy-template { width: 26px; height: 26px; border-radius: 6px; }
             .prompt-block{
@@ -482,6 +491,14 @@
               max-height: 180px;
               padding: 10px 0;
             }
+        }
+
+        @media (max-width: 768px) and (prefers-reduced-motion: reduce) {
+          body.scrolly-on.scrolly-mobile .tech{
+            opacity: 1;
+            transform: none;
+            transition: none;
+          }
         }
 
         /* === TOC: subtle rectangular control (no border) === */
@@ -621,7 +638,7 @@
           outline: none;
         }
 
-        /* === TOC: mobile handle + genie strips === */
+        /* === TOC: mobile handle === */
         .toc-handle{
           position: fixed;
           left: 0;
@@ -641,85 +658,12 @@
           line-height: 1;
           padding: 0;
           cursor: pointer;
-        }
-
-        .toc-genie-overlay{
-          position: fixed;
-          left: 0;
-          top: 0;
-          width: 100%;
-          height: 100%;
-          pointer-events: none;
-          perspective: 900px;
-          perspective-origin: left center;
-          z-index: 70;
-          contain: layout paint style;
-          transform: translateZ(0);
-          backface-visibility: hidden;
-          will-change: transform;
-        }
-
-        .toc-genie-overlay .toc{
-          opacity: 1 !important;
-          animation: none !important;
-          transition: none !important;
-        }
-
-        .toc-strip{
-          position: absolute;
-          top: 0;
-          height: 100%;
-          overflow: hidden;
-          transform-style: preserve-3d;
-          transform-origin: left center;
-          animation-duration: 400ms;
-          animation-timing-function: cubic-bezier(0.2, 0, 0.2, 1);
-          animation-fill-mode: both;
-          animation-delay: var(--delay);
-          will-change: transform;
-          transform: translateZ(0);
-          backface-visibility: hidden;
-        }
-
-        .toc-strip-inner{
-          position: absolute;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          transform-style: preserve-3d;
-          backface-visibility: hidden;
-          transform: translateZ(0);
-          will-change: transform;
-        }
-
-        .toc-strip.is-closing{
-          animation-name: toc-genie-close;
-        }
-
-        .toc-strip.is-opening{
-          animation-name: toc-genie-open;
+          touch-action: manipulation;
         }
 
         @media (max-width: 768px) {
           .toc-handle{
             display: inline-flex;
-          }
-
-          @keyframes toc-genie-close{
-            from { transform: translate3d(0,0,0) rotateY(0deg); }
-            to { transform: translate3d(var(--dx), var(--dy), 0) rotateY(var(--rot)) translateZ(120px) scaleX(0.05); }
-          }
-
-          @keyframes toc-genie-open{
-            from { transform: translate3d(var(--dx), var(--dy), 0) rotateY(var(--rot)) translateZ(120px) scaleX(0.05); }
-            to { transform: translate3d(0,0,0) rotateY(0deg); }
-          }
-        }
-
-        @media (max-width: 768px) and (prefers-reduced-motion: reduce) {
-          .toc-strip{
-            animation: none !important;
           }
         }
 
@@ -1691,6 +1635,8 @@
 
     if (sections.length) {
         document.body.classList.add("scrolly-on");
+        const mqMobile = window.matchMedia("(max-width: 768px)");
+        const mqReduce = window.matchMedia("(prefers-reduced-motion: reduce)");
 
         const slugCounts = new Map();
         const slugify = (text) => {
@@ -1713,6 +1659,50 @@
             section.id = slug;
             return { section, title, slug };
         });
+
+        let revealObserver = null;
+
+        const clearRevealObserver = () => {
+            if (revealObserver) {
+                revealObserver.disconnect();
+                revealObserver = null;
+            }
+        };
+
+        const syncMobileReveal = () => {
+            const isMobile = mqMobile.matches;
+            document.body.classList.toggle("scrolly-mobile", isMobile);
+            clearRevealObserver();
+
+            if (!isMobile) {
+                sections.forEach((section) => section.classList.remove("is-revealed"));
+                return;
+            }
+
+            if (mqReduce.matches || !("IntersectionObserver" in window)) {
+                sections.forEach((section) => section.classList.add("is-revealed"));
+                return;
+            }
+
+            sections.forEach((section) => section.classList.remove("is-revealed"));
+            const observer = new IntersectionObserver(
+                (entries) => {
+                    entries.forEach((entry) => {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add("is-revealed");
+                            observer.unobserve(entry.target);
+                        }
+                    });
+                },
+                {
+                    root: null,
+                    threshold: 0.2,
+                    rootMargin: "0px 0px -12% 0px"
+                }
+            );
+            revealObserver = observer;
+            sections.forEach((section) => observer.observe(section));
+        };
 
         const toc = document.createElement("nav");
         toc.className = "toc";
@@ -1768,89 +1758,14 @@
         handle.setAttribute("aria-expanded", "true");
         document.body.appendChild(handle);
 
-        const mqMobile = window.matchMedia("(max-width: 768px)");
-        const mqReduce = window.matchMedia("(prefers-reduced-motion: reduce)");
         const TOC_STORAGE_KEY = "tocCollapsed";
-        const STRIP_COUNT = 12;
-        const STRIP_DELAY = 6;
-        const STRIP_DURATION = 400;
         let tocCollapsed = false;
-        let overlay = null;
-        let animationToken = 0;
 
         const setHandleState = () => {
             handle.setAttribute("aria-expanded", tocCollapsed ? "false" : "true");
         };
 
-        const clearOverlay = () => {
-            if (overlay) {
-                overlay.remove();
-                overlay = null;
-            }
-        };
-
-        const createStripsFromElement = (el, stripCount) => {
-            const rect = el.getBoundingClientRect();
-            const overlayEl = document.createElement("div");
-            overlayEl.className = "toc-genie-overlay";
-            overlayEl.style.left = `${rect.left}px`;
-            overlayEl.style.top = `${rect.top}px`;
-            overlayEl.style.width = `${rect.width}px`;
-            overlayEl.style.height = `${rect.height}px`;
-            overlayEl.setAttribute("aria-hidden", "true");
-
-            const handleRect = handle.getBoundingClientRect();
-            const targetX = handleRect.left + handleRect.width / 2;
-            const targetY = handleRect.top + handleRect.height / 2;
-            const stripWidth = rect.width / stripCount;
-            const strips = [];
-            const fragment = document.createDocumentFragment();
-
-            for (let i = 0; i < stripCount; i += 1) {
-                const strip = document.createElement("div");
-                strip.className = "toc-strip";
-                strip.style.left = `${i * stripWidth}px`;
-                strip.style.width = `${stripWidth}px`;
-                strip.style.height = `${rect.height}px`;
-
-                const stripCenterX = rect.left + (i + 0.5) * stripWidth;
-                const stripCenterY = rect.top + rect.height / 2;
-                const dx = targetX - stripCenterX;
-                const dy = targetY - stripCenterY;
-                const rot = (i - (stripCount - 1) / 2) * 3;
-                const delay = i * STRIP_DELAY;
-
-                strip.style.setProperty("--dx", `${dx}px`);
-                strip.style.setProperty("--dy", `${dy}px`);
-                strip.style.setProperty("--rot", `${rot}deg`);
-                strip.style.setProperty("--delay", `${delay}ms`);
-                strip.style.animationDelay = `${delay}ms`;
-
-                const inner = document.createElement("div");
-                inner.className = "toc-strip-inner";
-
-                const clone = el.cloneNode(true);
-                clone.removeAttribute("id");
-                clone.style.position = "absolute";
-                clone.style.left = `${-i * stripWidth}px`;
-                clone.style.top = "0";
-                clone.style.width = `${rect.width}px`;
-                clone.style.height = `${rect.height}px`;
-                clone.style.pointerEvents = "none";
-                clone.style.visibility = "visible";
-
-                inner.appendChild(clone);
-                strip.appendChild(inner);
-                fragment.appendChild(strip);
-                strips.push(strip);
-            }
-
-            overlayEl.appendChild(fragment);
-            document.body.appendChild(overlayEl);
-            return { overlay: overlayEl, strips };
-        };
-
-        const setCollapsedState = (collapsed, { animate = true, persist = false } = {}) => {
+        const setCollapsedState = (collapsed, { persist = false } = {}) => {
             const isMobile = mqMobile.matches;
             tocCollapsed = collapsed;
             setHandleState();
@@ -1868,78 +1783,22 @@
             toc.setAttribute("aria-hidden", collapsed ? "true" : "false");
 
             if (!isMobile) {
-                animationToken += 1;
-                clearOverlay();
                 toc.style.display = "";
                 toc.style.visibility = "";
                 return;
             }
 
-            animationToken += 1;
-            const token = animationToken;
-            const shouldAnimate = animate && !mqReduce.matches;
-            const totalDuration = STRIP_DURATION + (STRIP_COUNT - 1) * STRIP_DELAY;
-
             if (collapsed) {
-                if (!shouldAnimate) {
-                    clearOverlay();
-                    toc.style.display = "none";
-                    toc.style.visibility = "";
-                    return;
+                toc.style.display = "none";
+                toc.style.visibility = "";
+                if (toc.contains(document.activeElement)) {
+                    handle.focus();
                 }
-
-                clearOverlay();
-                const created = createStripsFromElement(toc, STRIP_COUNT);
-                overlay = created.overlay;
-                toc.style.visibility = "hidden";
-                requestAnimationFrame(() => {
-                    requestAnimationFrame(() => {
-                        if (token !== animationToken) {
-                            return;
-                        }
-                        created.strips.forEach((strip) => strip.classList.add("is-closing"));
-                    });
-                });
-
-                window.setTimeout(() => {
-                    if (token !== animationToken) {
-                        return;
-                    }
-                    clearOverlay();
-                    toc.style.display = "none";
-                    toc.style.visibility = "";
-                }, totalDuration);
                 return;
             }
 
             toc.style.display = "";
-
-            if (!shouldAnimate) {
-                clearOverlay();
-                toc.style.visibility = "";
-                return;
-            }
-
-            toc.style.visibility = "hidden";
-            clearOverlay();
-            const created = createStripsFromElement(toc, STRIP_COUNT);
-            overlay = created.overlay;
-            requestAnimationFrame(() => {
-                requestAnimationFrame(() => {
-                    if (token !== animationToken) {
-                        return;
-                    }
-                    created.strips.forEach((strip) => strip.classList.add("is-opening"));
-                });
-            });
-
-            window.setTimeout(() => {
-                if (token !== animationToken) {
-                    return;
-                }
-                clearOverlay();
-                toc.style.visibility = "";
-            }, totalDuration);
+            toc.style.visibility = "";
         };
 
         const syncForBreakpoint = () => {
@@ -1950,8 +1809,6 @@
             if (!isMobile) {
                 tocCollapsed = false;
                 document.body.classList.remove("toc-collapsed");
-                animationToken += 1;
-                clearOverlay();
                 toc.style.display = "";
                 toc.style.visibility = "";
                 toc.setAttribute("aria-hidden", "false");
@@ -1971,22 +1828,29 @@
             } catch (error) {
                 storedCollapsed = false;
             }
-            setCollapsedState(storedCollapsed, { animate: false, persist: false });
+            setCollapsedState(storedCollapsed, { persist: false });
         };
 
         handle.addEventListener("click", () => {
             if (!mqMobile.matches) {
                 return;
             }
-            setCollapsedState(!tocCollapsed, { animate: true, persist: true });
+            setCollapsedState(!tocCollapsed, { persist: true });
         });
 
         syncForBreakpoint();
+        syncMobileReveal();
 
         if (mqMobile.addEventListener) {
-            mqMobile.addEventListener("change", syncForBreakpoint);
+            mqMobile.addEventListener("change", () => {
+                syncForBreakpoint();
+                syncMobileReveal();
+            });
         } else if (mqMobile.addListener) {
-            mqMobile.addListener(syncForBreakpoint);
+            mqMobile.addListener(() => {
+                syncForBreakpoint();
+                syncMobileReveal();
+            });
         }
 
         let tocIsHovered = false;
