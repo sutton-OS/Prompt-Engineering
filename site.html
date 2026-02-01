@@ -79,7 +79,7 @@
         }
 
         :root {
-            /* Apple-esque System Colors */
+            /* System Colors */
             --bg-main: #FFFFFF;
             --bg-surface: #F9FAFB;
             --bg-card: #EEF0F3;
@@ -88,7 +88,7 @@
             --text-heading: #1d1d1f;
             --border-subtle: #d2d2d7;
 
-            /* iA Writer Accent */
+            /* Accent */
             --accent-blue: #05a1f0;
 
             /* Typography */
@@ -284,7 +284,7 @@
             cursor: default;
         }
 
-        /* The "iA Writer" Prompt Blocks */
+        /* Prompt Blocks */
         .prompt-block {
             font-family: var(--font-body);
             background-color: var(--bg-card);
@@ -801,8 +801,7 @@
 
         <h4 class="intro-subhead">Reliability: keeping the model grounded</h4>
         <div class="technique-description">
-            <p>Reliability usually comes from structure more than persuasion. Delimiters prevent instruction/data mixups (quotation marks "..." triple back ticks ``` or triple greater/less than symbols <<<...>>>). Schemas prevent formatting drift. Checklists prevent omissions.</p>
-            <p>When facts matter, do not rely on the model’s memory. Provide sources (retrieval), require citations, or instruct tool use (web search, file/PDF analysis, image generation). When model "safety" matters, treat untrusted (taboo) text as data with delimiters, not instructions.</p>
+            Reliability tends to come from structure more than persuasion. Delimiters help prevent instruction/data confusion. For example, using quotation marks "..." triple backticks '''...'''or triple angle brackets <<<...>>> to clearly separate content from instructions. Because models are trained on large volumes of source code, they associate """...""" and '''...''' with multi-line string literals, and therefore tend to treat enclosed text as verbatim input rather than something to reinterpret or rewrite. Schemas reduce formatting drift. Checklists reduce omissions. When factual accuracy matters, do not rely on the model’s internal memory. Instead, provide sources (retrieval), require citations, or explicitly instruct tool use (e.g., web search, file or PDF analysis, image generation). When safety or instruction integrity matters, treat untrusted or sensitive text as data, not instructions, and always enclose it in clear delimiters.
         </div>
 
         <div class="template-section" id="template-section">
@@ -842,7 +841,7 @@
                                     <li>Historical-critical scholarship (e.g., source, form, redaction, social-historical context)</li>
                                     <li>Major theological trajectories (patristic, medieval, Reformation, modern)</li>
                                     <li>Literary/canonical approaches</li>
-                                    <li>Major denominational perspectives (name the perspective only when it materially affects interpretation)</li>
+                                    <li>Major christian denominational perspectives including Roman Catholicism, Eastern Orthodoxy, Oriental Orthodoxy, Anglicanism, Lutheranism, Reformed/Presbyterian, Baptist, Methodist, Pentecostal/Charismatic, and Mormonism/LDS. (name the perspective only when it materially affects interpretation)</li>
                                 </ol>
                             </li>
                             <li>Synthesis: select the best-supported interpretation(s) and explicitly note any major, live scholarly disputes that affect the thesis.</li>
@@ -900,6 +899,7 @@
                         </ul>
                     </div>
                 </div>
+                <p>This prompt will cause the model to produce an output closer to what you want instead of just saying "enhance my religious essay". Obviously not all prompts have to be this detailed to get a good output, but using a combination of some of these techniques is recommended.</p>
             </div>
         </div>
 
@@ -2142,7 +2142,7 @@
         const startX = rand(-0.2 * w, 0.9 * w);
         const startY = rand(-0.35 * h, 0.2 * h);
 
-        // down-right-ish, like Grok
+        // down-right-ish
         const angle = rand(Math.PI * 0.18, Math.PI * 0.33);
     const speed = rand(750, 1200);
 
