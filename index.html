@@ -208,10 +208,9 @@
         let nextShootAt = 0;
         let lastT = performance.now();
 
-        const prefersReducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ?? false;
+        const prefersReducedMotion = reduceMotion;
 
         function rand(min, max) { return min + Math.random() * (max - min); }
-        function randi(min, max) { return Math.floor(rand(min, max + 1)); }
 
         function isDarkTheme() {
           return document.body?.dataset?.theme === "dark";
