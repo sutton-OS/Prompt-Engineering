@@ -78,6 +78,22 @@
             font-display: swap;
         }
 
+        @font-face {
+            font-family: "iA Writer Mono";
+            src: url("iAWriterMonoV.ttf") format("truetype");
+            font-weight: 400;
+            font-style: normal;
+            font-display: swap;
+        }
+
+        @font-face {
+            font-family: "iA Writer Mono";
+            src: url("iAWriterMonoV-Italic.ttf") format("truetype");
+            font-weight: 400;
+            font-style: italic;
+            font-display: swap;
+        }
+
         :root {
             /* System Colors */
             --bg-main: #FFFFFF;
@@ -93,6 +109,7 @@
 
             /* Typography */
             --font-body: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            --font-card: "iA Writer Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 
             /* Scrollytelling */
             --chapter-vh: 132vh;
@@ -231,6 +248,11 @@
 
         .template-card {
             position: relative;
+            font-family: var(--font-card);
+        }
+
+        .template-card * {
+            font-family: var(--font-card);
         }
 
         .copy-template {
@@ -286,13 +308,13 @@
 
         /* Prompt Blocks */
         .prompt-block {
-            font-family: var(--font-body);
+            font-family: var(--font-card);
             background-color: var(--bg-card);
             border: 1px solid color-mix(in srgb, var(--border-subtle) 60%, transparent);
             padding: 20px 24px;
             border-radius: 6px;
             margin: 20px 0;
-            font-size: 16px;
+            font-size: 14.3px;
             color: var(--text-primary);
             line-height: 1.7;
         }
@@ -464,7 +486,7 @@
             .copy-template { width: 26px; height: 26px; border-radius: 6px; }
             .prompt-block{
               padding: 16px 18px;
-              font-size: 15.5px;
+              font-size: 13.9px;
               margin: 16px 0;
             }
             .toc{
@@ -605,6 +627,11 @@
 
           color: rgba(255,255,255,0.66);/* lighter/subtler text */
           text-align: left;
+        }
+
+        .toc,
+        .toc *{
+          font-family: var(--font-card);
         }
 
         /* hover: minimal */
@@ -911,11 +938,13 @@
             <ol>
                 <li><strong>Instruction Design &amp; Constraints</strong></li>
                 <li><strong>Example-Driven Prompting</strong></li>
+                <li><strong>Knowledge Augmentation</strong></li>
                 <li><strong>Boundary &amp; Output Control</strong></li>
                 <li><strong>Decomposition &amp; Ask-First Prompting</strong></li>
                 <li><strong>Branch-and-Select Reasoning</strong></li>
                 <li><strong>Critique, Verification &amp; Revision Loops</strong></li>
                 <li><strong>Tool-Oriented Prompting &amp; Agent Workflows</strong></li>
+                <li><strong>Reasoning Techniques</strong></li>
                 <li><strong>Retrieval-Grounded Answering</strong></li>
                 <li><strong>Long-Context Summarization Patterns</strong></li>
                 <li><strong>Perspective &amp; Simulation Techniques</strong></li>
@@ -1011,6 +1040,22 @@
             </ul>
         </div>
 
+        <h2>Knowledge Augmentation</h2>
+
+        <h3>Generated Knowledge Prompting</h3>
+        <div class="technique-description">
+            <p>Have the model generate a small pool of relevant facts, definitions, or examples before it answers, then use that generated knowledge as scaffolding for the final response.</p>
+            <p>It’s like brainstorming notes before writing the essay: collect raw material first, then compose.</p>
+        </div>
+        <span class="label">Example Prompt</span>
+        <div class="prompt-block">
+            <ol>
+                <li>First, generate 3–5 short, accurate facts or definitions related to quantum computing (no fluff).</li>
+                <li>Second, using only those facts, explain superposition in 5–7 sentences.</li>
+                <li>If any fact is uncertain, replace it with a safer, more general statement.</li>
+            </ol>
+        </div>
+
         <h2>3. Boundary &amp; Output Control</h2>
 
         <h3>3.1 Delimiters / Tagging</h3>
@@ -1076,7 +1121,22 @@
             <p><strong>Problem:</strong> Design a weekly lifting plan for a beginner with 3 days per week.</p>
         </div>
 
-        <h3>4.2 Ask Clarifying Questions First</h3>
+        <h3>4.2 Least-to-Most Prompting</h3>
+        <div class="technique-description">
+            <p>Break the problem into simpler subproblems first, solve the easiest pieces, then build up to the full solution using what you’ve already established.</p>
+            <p>It’s like teaching in layers: start with fundamentals, then add complexity once the base is solid.</p>
+        </div>
+        <span class="label">Example Prompt</span>
+        <div class="prompt-block">
+            <ol>
+                <li><strong>Step 1 (easy):</strong> Identify the main subject and main verb in: “The cat chased the mouse that ate the cheese.”</li>
+                <li><strong>Step 2:</strong> Identify the direct object of “chased.”</li>
+                <li><strong>Step 3 (harder):</strong> Attach the relative clause “that ate the cheese” to the correct noun phrase.</li>
+                <li><strong>Output:</strong> Provide a bracketed parse plus a one-sentence explanation.</li>
+            </ol>
+        </div>
+
+        <h3>4.3 Ask Clarifying Questions First</h3>
         <div class="technique-description">
             <p>Require the model to pause and ask for missing details instead of guessing and being confidently wrong.</p>
             <p>It’s like a contractor asking measurements before cutting wood—cheap questions prevent expensive fixes.</p>
@@ -1089,7 +1149,7 @@
             </ul>
         </div>
 
-        <h3>4.3 Rephrase and Respond</h3>
+        <h3>4.4 Rephrase and Respond</h3>
         <div class="technique-description">
             <p>Have the model restate your request and assumptions before answering so misalignment gets caught early.</p>
             <p>It’s the AI equivalent of “Let me repeat that back to make sure I understood.”</p>
@@ -1199,6 +1259,54 @@
                 <li>the numeric answer</li>
             </ul>
             <p><strong>Problem:</strong> Compute CAGR given start value, end value, and years.</p>
+        </div>
+
+        <h2>Reasoning Techniques</h2>
+
+        <h3>Chain-of-Thought (CoT) Prompting</h3>
+        <div class="technique-description">
+            <p>Encourage stepwise reasoning for multi-step problems by asking the model to work through intermediate steps before giving the final answer.</p>
+            <p>It’s like requiring a student to show their work so small mistakes get caught before the final result.</p>
+        </div>
+        <span class="label">Example Prompt</span>
+        <div class="prompt-block">
+            <ul>
+                <li><strong>Task:</strong> Determine whether the odd numbers in this set sum to an even number.</li>
+                <li><strong>Set:</strong> 16, 3, 11, 7, 24</li>
+                <li><strong>Method:</strong> Identify the odd numbers, sum them, then answer yes/no.</li>
+                <li><strong>Output:</strong> Brief steps + final verdict.</li>
+            </ul>
+        </div>
+
+        <h3>Tree-of-Thoughts (ToT) Prompting</h3>
+        <div class="technique-description">
+            <p>Explore multiple candidate reasoning paths (a “tree” of options), evaluate each branch, and prune weak branches until a strong solution remains.</p>
+            <p>It’s like a chess player considering several lines, discarding bad moves, and committing to the best variation.</p>
+        </div>
+        <span class="label">Example Prompt</span>
+        <div class="prompt-block">
+            <ol>
+                <li>Generate 3–6 candidate solution branches.</li>
+                <li>For each branch, test constraints and mark it viable or prune it.</li>
+                <li>Continue expanding only viable branches until you find a full solution.</li>
+                <li>Output the best final solution plus a brief “why this branch won.”</li>
+            </ol>
+            <p><strong>Puzzle:</strong> Place 4 queens on a 4×4 chessboard so that no queens attack each other.</p>
+        </div>
+
+        <h3>Self-Consistency Prompting</h3>
+        <div class="technique-description">
+            <p>Sample multiple independent reasoning attempts for the same prompt, then select the most consistent answer (for example, by majority vote).</p>
+            <p>It’s like polling several experts independently and trusting the consensus over any single take.</p>
+        </div>
+        <span class="label">Example Prompt</span>
+        <div class="prompt-block">
+            <ol>
+                <li>Solve the problem 5 times independently (fresh reasoning each run).</li>
+                <li>Collect the 5 final answers.</li>
+                <li>Return only the majority answer (and the vote count).</li>
+            </ol>
+            <p><strong>Question:</strong> When I was 6, my sister was half my age. Now I’m 70. How old is my sister?</p>
         </div>
 
         <h2>8. Retrieval-Grounded Answering</h2>
